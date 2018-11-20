@@ -1,0 +1,37 @@
+package config
+
+const (
+
+	IS_TEST					= false
+
+	HTTP_PORT				= "8080"
+	IM_PORT					= "9090"
+	MAX_CLIENTS				= 10000
+
+	MYSQL_HOST				= "127.0.0.1:3306"
+	MYSQL_USER				= "root"
+	MYSQL_PASSWORD			= "aS!23456"
+	MYSQL_DB				= "hugogram"
+
+	MONGODB_HOST			= "127.0.0.1:27017"
+	MONGODB_USER			= "hugo"
+	MONGODB_PASSWORD		= "123456"
+	MONGODB_DB				= "imserver"
+
+	REDIS_HOST				= "127.0.0.1:6379"
+	REDIS_PASSWORD			= "123456"
+
+
+	TEST_MYSQL_HOST			= "14.18.253.121:3306"
+	TEST_MYSQL_USER			= "root"
+	TEST_MYSQL_PASSWORD		= "aS!23456"
+	TEST_MYSQL_DB			= "hugogram"
+
+	TEST_MONGODB_HOST		= "127.0.0.1:27017"
+	TEST_MONGODB_USER		= "hugo"
+	TEST_MONGODB_PASSWORD	= "123456"
+	TEST_MONGODB_DB			= "imserver"
+
+	TEST_REDIS_HOST			= "14.18.253.121:6379"
+	TEST_REDIS_PASSWORD		= "123456"
+)

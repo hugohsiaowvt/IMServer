@@ -1,0 +1,42 @@
+syntax="proto3";
+
+package protobuf;
+
+message IMRequest {
+    string  command             = 1;
+    bytes   data                = 2;
+}
+
+message ReqConn {
+    string  openId              = 1;
+    string  token               = 2;
+}
+
+message ReqMsg {
+    string  fromId              = 1;
+    string  toConversationId    = 2;
+    int32   roomType            = 3;
+    int32   msgType             = 4;
+    string  data                = 5;
+}
+
+
+message IMResponse {
+    int32 status                = 1;
+    string msg                  = 2;
+    bytes data                  = 3;
+    string refer                = 4;
+}
+
+message ResConn {
+    int32 status                = 1;
+}
+
+message ResMsg {
+    string  fromId              = 1;
+    string  toConversationId    = 2;
+    int32   roomType            = 3;
+    int32   msgType             = 4;
+    string  data                = 5;
+    int64   time                = 6;
+}
