@@ -30,7 +30,7 @@ func GetVerificationCode(c *gin.Context) {
 	}
 
 	// 傳送簡訊
-	err = send(phone, code);
+	err = send(zone, mobile, code);
 	if err != nil {
 		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
 		return
@@ -73,8 +73,19 @@ func Check(phone, code string) error {
 	return nil
 }
 
-func send(phone, code string) error {
+func send(zone, mobile, code string) error {
 
+	var verifyCodeSms VerifyCodeSMS
+
+	switch zone {
+	case "0086":
+		break
+	default:
+		verifyCodeSms = &NexmoVerifyCode{}
+	}
+	if err := verifyCodeSms.SendVerifyCode(zone, mobile, code); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -94,3 +105,16 @@ func preCheck(phone, code string) error {
 	return nil
 }
 
+func combinePhoneFormat(zone, mobile string) string {
+	//去除前面00
+	z := zone[2:]
+	zeroIndex := 0
+	for zeroIndex = 0; zeroIndex < len(mobile); zeroIndex++ {
+		if mobile[zeroIndex] != '0' {
+			break
+		}
+	}
+	//取出mobile裡前面沒有0的部分
+	p := mobile[zeroIndex:]
+	return z + p
+}
