@@ -29,14 +29,15 @@ func GetVerificationCode(c *gin.Context) {
 		return
 	}
 
-	// 傳送簡訊
-	err = send(zone, mobile, code);
-	if err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
-		return
-	}
-
-	c.JSON(http.StatusOK, restfulapi.SuccessMsg(SUCCESS_SMS_SEND_STRING))
+	// 傳送簡訊(目前先不花錢發簡訊)
+	//err = send(zone, mobile, code);
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+	//	return
+	//}
+	//
+	//c.JSON(http.StatusOK, restfulapi.SuccessMsg(SUCCESS_SMS_SEND_STRING))
+	c.JSON(http.StatusOK, restfulapi.SuccessMsg(code))
 }
 
 
