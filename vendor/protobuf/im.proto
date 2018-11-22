@@ -3,7 +3,7 @@ syntax="proto3";
 package protobuf;
 
 message IMRequest {
-    string  command             = 1;
+    uint32  command             = 1;
     bytes   data                = 2;
 }
 
@@ -25,7 +25,7 @@ message IMResponse {
     int32 status                = 1;
     string msg                  = 2;
     bytes data                  = 3;
-    string refer                = 4;
+    uint32 refer                = 4;
 }
 
 message ResConn {

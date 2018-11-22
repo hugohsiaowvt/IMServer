@@ -127,7 +127,7 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 
 	// 未授權業務處理部分
 	switch reqData.Command {
-	case common.GET_CONN:
+	case pb.GET_CONN:
 		req := &pb.ReqConn{}
 		res := &pb.ResConn{}
 		if err := proto.Unmarshal(reqData.Data, req); err != nil {
@@ -143,34 +143,34 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 				// 將key寫進redis
 				key := SOCKET_KEY_PREFIX + openId
 				if _, err := redis.Instance().HSet(key, "key", client.Key); err != nil {
-					client.PutOut(common.NewIMResponseSimple(1, err.Error(), common.GET_CONN_RETURN))
+					client.PutOut(common.NewIMResponseSimple(1, err.Error(), pb.GET_CONN_RETURN))
 					return
 				}
 				// 將這條socket的用戶設為剛查詢到的用戶
 				client.User = &user
 				res.Status = 1
 				data, _ := proto.Marshal(res)
-				client.PutOut(common.NewIMResponseData(data, common.GET_CONN_RETURN))
+				client.PutOut(common.NewIMResponseData(data, pb.GET_CONN_RETURN))
 				return
 			} else {
-				client.PutOut(common.NewIMResponseSimple(1, "無此用戶", common.GET_CONN_RETURN))
+				client.PutOut(common.NewIMResponseSimple(1, "無此用戶", pb.GET_CONN_RETURN))
 				return
 			}
 		} else {
-			client.PutOut(common.NewIMResponseSimple(1, "im token錯誤", common.GET_CONN_RETURN))
+			client.PutOut(common.NewIMResponseSimple(1, "im token錯誤", pb.GET_CONN_RETURN))
 			return
 		}
 	}
 
 	// 驗證連線是否已授權
 	if client.User == nil {
-		client.PutOut(common.NewIMResponseSimple(401, "用户未登录!", common.UNAUTHORIZED))
+		client.PutOut(common.NewIMResponseSimple(401, "用户未登录!", pb.UNAUTHORIZED))
 		return
 	}
 
 	// 已授權業務處理部分
 	switch reqData.Command {
-	case common.SEND_MSG:
+	case pb.SEND_MSG:
 		req := &pb.ReqMsg{}
 		if err := proto.Unmarshal(reqData.Data, req); err != nil {
 			return
@@ -189,21 +189,21 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 
 		list, err := redis.Instance().LRange(CONVERSATION_PREFIX + conversationId, 0, -1)
 		if err != nil {
-			client.PutOut(common.NewIMResponseSimple(1, err.Error(), common.SEND_MSG_RETURN))
+			client.PutOut(common.NewIMResponseSimple(1, err.Error(), pb.SEND_MSG_RETURN))
 		}
 		if len(list) == 0 {
 			if (req.RoomType == SINGLE_CHAT) {
 				log.Println("建立conversation")
 				if _, err1 := redis.Instance().LPush(CONVERSATION_PREFIX + conversationId, smallId); err1 != nil {
-					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), common.SEND_MSG_RETURN))
+					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
 				}
 				if _, err1 := redis.Instance().LPush(CONVERSATION_PREFIX + conversationId, bigId); err1 != nil {
-					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), common.SEND_MSG_RETURN))
+					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
 				}
 				this.sendMsgByKeys([]string {smallId, bigId}, req)
 				return
 			} else {
-				client.PutOut(common.NewIMResponseSimple(1, "無此群組", common.SEND_MSG_RETURN))
+				client.PutOut(common.NewIMResponseSimple(1, "無此群組", pb.SEND_MSG_RETURN))
 			}
 		} else {
 			this.sendMsgByKeys(list, req)
@@ -236,7 +236,7 @@ func (this *Server) sendMsgByKeys(list []string, req *pb.ReqMsg) {
 			//推送、離線訊息處理
 			continue
 		}
-		this.clients[v].PutOut(common.NewIMResponseData(data, common.SEND_MSG_RETURN))
+		this.clients[v].PutOut(common.NewIMResponseData(data, pb.SEND_MSG_RETURN))
 	}
 }
 

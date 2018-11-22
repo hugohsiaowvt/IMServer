@@ -16,7 +16,7 @@ type OutMessage chan IMResponse
 /*
  錯誤訊息構造方法
 */
-func NewIMResponseSimple(status int32, msg string, refer string) *IMResponse {
+func NewIMResponseSimple(status int32, msg string, refer uint32) *IMResponse {
 	res := &pb.IMResponse{
 		Status: status,
 		Msg: msg,
@@ -29,7 +29,7 @@ func NewIMResponseSimple(status int32, msg string, refer string) *IMResponse {
 /*
  成功消息構造方法
 */
-func NewIMResponseData(data []byte, refer string) *IMResponse {
+func NewIMResponseData(data []byte, refer uint32) *IMResponse {
 	res := &pb.IMResponse{
 		Status: 0,
 		Msg: "",
