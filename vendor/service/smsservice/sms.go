@@ -21,7 +21,7 @@ func GetVerificationCode(c *gin.Context) {
 
 	phone := zone + mobile
 
-	code := util.GetRandomCode(4)
+	code := util.GetRandomCode(6)
 	key := VERIFICATION_CODE_REDIS_PREFIX + phone
 	_, err := redis.Instance().SetAndExpire(key, code, 5*60)
 	if (err != nil) {

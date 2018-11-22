@@ -1,0 +1,2 @@
+go get github.com/sendgrid/rest
+go get github.com/ammario/nexmo
