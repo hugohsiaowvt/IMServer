@@ -4,6 +4,7 @@ import (
 	"service/userservice"
 	"service/relationservice"
 	"service/smsservice"
+	"service/fileservice"
 	"service/utilservice"
 	"github.com/gin-gonic/gin"
 	"rz/config"
@@ -52,6 +53,11 @@ func setV1Group(router gin.IRouter) {
 			relations.GET("/sync/:time/user/:userId", relationservice.SyncFriendList)
 			relations.POST("/invite/user/:fromId", relationservice.InviteFriend)
 			relations.POST("/accept/user/:fromId", relationservice.AcceptFriend)
+		}
+
+		files := v.Group("/files")
+		{
+			files.GET("/dir/assign", fileservice.DirAssign)
 		}
 
 

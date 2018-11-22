@@ -6,7 +6,7 @@ const (
 
 	HTTP_PORT				= "8080"
 	IM_PORT					= "9090"
-	MAX_CLIENTS				= 10000
+	MAX_CLIENTS				= 100000
 
 	MYSQL_HOST				= "127.0.0.1:3306"
 	MYSQL_USER				= "root"
@@ -34,4 +34,6 @@ const (
 
 	TEST_REDIS_HOST			= "14.18.253.121:6379"
 	TEST_REDIS_PASSWORD		= "123456"
+
+	FILE_SERVER_ADDRESS		= "http://14.18.253.71:9333"
 )
