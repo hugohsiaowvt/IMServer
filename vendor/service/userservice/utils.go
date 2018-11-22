@@ -8,7 +8,8 @@ const (
 	TABLE_USERS					string = "users"
 	LOGIN_TOKEN_REDIS_PREFIX	string = "login_token:"
 	IM_TOKEN_REDIS_PREFIX		string = "im_token:"
-	PASSWORD_PREFIX				string = "hUGO%pTT"
+	OPEN_ID_PREFIX				string = "open_id:"
+	OPEN_ID_KEY					string = "f?KQk#KZqvu.BvAx"
 
 	
 	ERROR_PHONE_ISEXIST_STRING			string = "該電話已被申請"

@@ -1,16 +1,20 @@
 package userservice
 
 import (
+
 	"fmt"
 	"errors"
 	"net/http"
-	"github.com/gin-gonic/gin"
-	"rz/mysql"
+
 	"rz/util"
+	"rz/mysql"
 	"rz/redis"
 	"rz/restfulapi"
 	"service/smsservice"
+
+	"github.com/gin-gonic/gin"
 	"github.com/pborman/uuid"
+
 )
 
 // PUBLIC METHOD
@@ -57,7 +61,7 @@ func CreateUser(c *gin.Context) {
 	user := input.ToModel()
 
 	// 新增一個Open id
-	user.OpenId = util.GenerateKey("open_id:")
+	user.OpenId = util.MD5(OPEN_ID_PREFIX + input.Zone + input.Mobile + OPEN_ID_KEY)
 
 	// 開啟Transactions
 	tx := mysql.Instance().Begin()
@@ -188,6 +192,7 @@ func QueryUserExistByMobile(zone, mobile string) (User, bool) {
 	return user, false
 }
 
+// 確認用戶存不存在
 func QueryUserExistByOpenId(openId string) (User, bool) {
 	user := User{}
 	var count int
@@ -201,7 +206,7 @@ func QueryUserExistByOpenId(openId string) (User, bool) {
 	return user, false
 }
 
-//登入
+// 登入
 func login(user *User, input LoginInput) (string, string, error) {
 
 	// 查詢用戶
@@ -235,6 +240,7 @@ func login(user *User, input LoginInput) (string, string, error) {
 
 }
 
+// 取得IM Token
 func getIMToken(openId string) (string, error) {
 	token := uuid.New()
 	key := IM_TOKEN_REDIS_PREFIX + openId
@@ -244,6 +250,7 @@ func getIMToken(openId string) (string, error) {
 	return token, nil
 }
 
+// 確認IM Token
 func CheckIMToken(openId, token string) bool {
 	key := IM_TOKEN_REDIS_PREFIX + openId
 	if v, err := redis.Instance().Get(key); err != nil {
