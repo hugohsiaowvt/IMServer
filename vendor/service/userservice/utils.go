@@ -27,7 +27,6 @@ type User struct {
 	UserId   	string	`json:"user_id"`
 	Zone       	string	`json:"zone"`
 	Mobile     	string	`json:"mobile"`
-	Avatar		string	`json:"avatar"`
 	Sex        	int		`json:"sex"`
 	Password   	string	`json:"password"`
 	Email		string	`json:"email"`
@@ -47,7 +46,6 @@ type RegisterInput struct {
 	Username   	string	`json:"username"`
 	Zone       	string	`json:"zone"`
 	Mobile     	string	`json:"mobile"`
-	Avatar		string	`json:"avatar"`
 	Password	string	`json:"password"`
 }
 

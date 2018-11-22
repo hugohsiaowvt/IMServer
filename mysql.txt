@@ -5,7 +5,6 @@ CREATE TABLE `hugogram`.`users` (
   `user_id` VARCHAR(40) NOT NULL DEFAULT '' COMMENT '好友搜尋id',
   `zone` VARCHAR(10) NOT NULL DEFAULT '' COMMENT '手機區碼',
   `mobile` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '手機號碼',
-  `avatar` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '頭像位址',
   `sex` SMALLINT(6) NOT NULL DEFAULT '-1' COMMENT '-1:未選擇\n0:女\n1:男',
   `password` VARCHAR(100) NOT NULL DEFAULT '' COMMENT '使用者加密後密碼',
   `email` VARCHAR(40) NOT NULL DEFAULT '' COMMENT '使用者信箱',
