@@ -1,7 +1,6 @@
 package utilservice
 
 import (
-	"net/http"
 	"rz/restfulapi"
 	"github.com/gin-gonic/gin"
 )
@@ -200,5 +199,5 @@ func Countrys() []*Country  {
 }
 
 func GetCountrys(c *gin.Context) {
-	c.JSON(http.StatusOK, restfulapi.Success(Countrys()))
+	restfulapi.Success(c, Countrys())
 }

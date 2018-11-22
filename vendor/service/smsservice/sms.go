@@ -1,12 +1,15 @@
 package smsservice
 
 import (
+
 	"errors"
-	"net/http"
+
 	"rz/util"
 	"rz/redis"
 	"rz/restfulapi"
+
 	"github.com/gin-gonic/gin"
+
 )
 
 func GetVerificationCode(c *gin.Context) {
@@ -15,7 +18,7 @@ func GetVerificationCode(c *gin.Context) {
 	mobile := c.Query("mobile")
 
 	if zone == "" || mobile == "" {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, ERROR_MISSING_PHONE_STRING))
+		restfulapi.Error(c, 1, ERROR_MISSING_PHONE_STRING)
 		return
 	}
 
@@ -25,7 +28,7 @@ func GetVerificationCode(c *gin.Context) {
 	key := VERIFICATION_CODE_REDIS_PREFIX + phone
 	_, err := redis.Instance().SetAndExpire(key, code, 5*60)
 	if (err != nil) {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
@@ -37,7 +40,7 @@ func GetVerificationCode(c *gin.Context) {
 	//}
 	//
 	//c.JSON(http.StatusOK, restfulapi.SuccessMsg(SUCCESS_SMS_SEND_STRING))
-	c.JSON(http.StatusOK, restfulapi.SuccessMsg(code))
+	restfulapi.SuccessMsg(c, code)
 }
 
 
@@ -49,18 +52,18 @@ func PreCheckVerificationCode(c *gin.Context) {
 	// 綁定輸入參數
 	var input PreCheckVerificationInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, ERROR_MISSING_PARAMETER_STRING))
+		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
 		return
 	}
 
 	// 驗證碼確認
 	err := preCheck(input.Zone + input.Mobile, code)
 	if (err != nil) {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, restfulapi.SuccessMsg(SUCCESS_SMS_VERIFICATION_STRING))
+	restfulapi.SuccessMsg(c, SUCCESS_SMS_VERIFICATION_STRING)
 
 }
 

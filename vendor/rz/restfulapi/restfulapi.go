@@ -1,5 +1,11 @@
 package restfulapi
 
+import(
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
 type RestfulAPIResponse struct {
 	Status	int
 	Data	interface{}
@@ -14,21 +20,21 @@ type ErrorMessage struct {
 	ErrorMsg	string
 }
 
-func Success(data interface{}) RestfulAPIResponse {
-	return RestfulAPIResponse{0, data}
+func Success(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, RestfulAPIResponse{0, data})
 }
 
-func SuccessMsg(msg string) RestfulAPIResponse {
+func SuccessMsg(c *gin.Context, msg string) {
 	res := SuccessMessage {
 		Message:	msg,
 	}
-	return RestfulAPIResponse{0, res}
+	c.JSON(http.StatusOK, RestfulAPIResponse{0, res})
 }
 
-func Error(code int8, msg string) RestfulAPIResponse {
+func Error(c *gin.Context, code int8, msg string) {
 	err := ErrorMessage {
 		ErrorCode:	code,
 		ErrorMsg:	msg,
 	}
-	return RestfulAPIResponse{1, err}
+	c.JSON(http.StatusOK, RestfulAPIResponse{1, err})
 }

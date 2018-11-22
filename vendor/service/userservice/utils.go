@@ -5,12 +5,12 @@ import (
 )
 
 const (
+
 	TABLE_USERS					string = "users"
 	LOGIN_TOKEN_REDIS_PREFIX	string = "login_token:"
 	IM_TOKEN_REDIS_PREFIX		string = "im_token:"
 	OPEN_ID_PREFIX				string = "open_id:"
 	OPEN_ID_KEY					string = "f?KQk#KZqvu.BvAx"
-
 	
 	ERROR_PHONE_ISEXIST_STRING			string = "該電話已被申請"
 	ERROR_MISSING_PARAMETER_STRING      string = "缺少參數"
@@ -19,6 +19,7 @@ const (
 
 	SUCCESS_SMS_SEND_STRING				string = "發送成功"
 	SUCCESS_SMS_VERIFICATION_STRING		string = "驗證成功"
+	
 )
 
 type User struct {

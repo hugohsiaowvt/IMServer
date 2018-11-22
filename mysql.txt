@@ -13,7 +13,7 @@ CREATE TABLE `hugogram`.`users` (
   `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `status` SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '0:正常\n99:封號',
   PRIMARY KEY (`id`),
-  INDEX `open_id` (`open_id` ASC));
+  UNIQUE `open_id` (`open_id` ASC));
 
 
 

@@ -1,15 +1,16 @@
 package relationservice
 
 import (
+
 	"strings"
-	"net/http"
 	"time"
-	//"rz/im"
+
 	"rz/util"
 	"rz/restfulapi"
-	//"RCServerSDK"
 	"service/userservice"
+
 	"github.com/gin-gonic/gin"
+
 )
 
 func SyncFriendList(c *gin.Context) {
@@ -24,7 +25,7 @@ func SyncFriendList(c *gin.Context) {
 
 	if err := QueryFriendSyncList(&relationship, &count, userId, time); err != nil {
 		if (count != 0) {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+			restfulapi.Error(c, 1, err.Error())
 			return
 		}
 	}
@@ -39,12 +40,12 @@ func SyncFriendList(c *gin.Context) {
 
 	if err := userservice.QueryUserPublicInfoByOpenIds(&friendList, &count, friendIds); err != nil {
 		if (count != 0) {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, "open_id錯誤"))
+			restfulapi.Error(c, 1, "open_id錯誤")
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, restfulapi.Success(relationship))
+	restfulapi.Success(c, relationship)
 
 }
 
@@ -57,7 +58,7 @@ func InviteFriend(c *gin.Context) {
 	// 綁定輸入參數
 	var input InviteFriendInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "缺少參數"))
+		restfulapi.Error(c, 1, "缺少參數")
 		return
 	}
 
@@ -77,7 +78,7 @@ func InviteFriend(c *gin.Context) {
 	}
 	if err := userservice.QueryUserPublicInfoByOpenIds(&users, &count, openIds); err != nil {
 		if (count != 2) {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, "open_id錯誤"))
+			restfulapi.Error(c, 1, "open_id錯誤")
 			return
 		}
 	}
@@ -85,7 +86,7 @@ func InviteFriend(c *gin.Context) {
 	// 查詢好友邀請清單
 	if err := QueryFriendRecord(relationship, &count, smallId, bigId); err != nil {
 		if (count != 0) {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+			restfulapi.Error(c, 1, err.Error())
 			return
 		}
 	}
@@ -98,10 +99,10 @@ func InviteFriend(c *gin.Context) {
 	relationship.ActionUserId = fromId
 	relationship.RequestToken = util.GenerateKey("request_token:")
 	if err := InsertRelation(relationship); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, restfulapi.Success(relationship))
+	restfulapi.Success(c, relationship)
 }
 
 func AcceptFriend(c *gin.Context) {
@@ -114,13 +115,13 @@ func AcceptFriend(c *gin.Context) {
 	// 綁定輸入參數
 	var input AcceptFriendInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "缺少參數"))
+		restfulapi.Error(c, 1, "缺少參數")
 		return
 	}
 
 	// 查詢好友邀請清單
 	if err := QueryFriendRecordByRequestToken(relationship, &count, input.RequestToken); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
@@ -128,23 +129,23 @@ func AcceptFriend(c *gin.Context) {
 	switch relationship.Status {
 	case Pending:
 		if (relationship.ActionUserId == fromId) {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, "已發送邀請"))
+			restfulapi.Error(c, 1, "已發送邀請")
 			return
 		}
 		relationship.Time = time.Now().UnixNano()
 		relationship.Status = Acception
 		relationship.ActionUserId = fromId
 		if err := UpdateRelation(relationship); err != nil {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+			restfulapi.Error(c, 1, err.Error())
 			return
 		}
-		c.JSON(http.StatusOK, restfulapi.Success(relationship))
+		restfulapi.Success(c, relationship)
 		break
 	case Acception:
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "已是好友"))
+		restfulapi.Error(c, 1, "已是好友")
 		break
 	default:
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "未知錯誤"))
+		restfulapi.Error(c, 1, "未知錯誤")
 		break
 	}
 

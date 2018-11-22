@@ -4,7 +4,6 @@ import (
 
 	"fmt"
 	"errors"
-	"net/http"
 
 	"rz/util"
 	"rz/mysql"
@@ -27,7 +26,8 @@ func Test(c *gin.Context) {
 	v, err := redis.Instance().LRange("mylist", 0, -1)
 	fmt.Println(v, err)
 
-	c.JSON(http.StatusOK, restfulapi.Success(v))
+	restfulapi.Success(c, v)
+
 }
 
 func CreateUser(c *gin.Context) {
@@ -40,25 +40,37 @@ func CreateUser(c *gin.Context) {
 	// 綁定輸入參數
 	var input RegisterInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, ERROR_MISSING_PARAMETER_STRING))
+		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 驗證碼確認
 	err := smsservice.Check(input.Zone + input.Mobile, code)
 	if (err != nil) {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 將輸入參數轉成User
 	user := input.ToModel()
+
+	// 查詢用戶存不存在
+	var count int = -1
+	if err := QueryUser(&User{}, user, &count); err != nil {
+		if count != 0 {
+			restfulapi.Error(c, 1, err.Error())
+			return
+		}
+	} else if count == 1 {
+		restfulapi.Error(c, 1, ERROR_PHONE_ISEXIST_STRING)
+		return
+	}
 
 	// 新增一個Open id
 	user.OpenId = util.MD5(OPEN_ID_PREFIX + input.Zone + input.Mobile + OPEN_ID_KEY)
@@ -75,14 +87,14 @@ func CreateUser(c *gin.Context) {
 	// 新增用戶
 	if err := InsertUsers(tx, user); err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 提交
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "提交處理出錯！"))
+		restfulapi.Error(c, 1, "提交處理出錯！")
 		return
 	}
 
@@ -92,7 +104,7 @@ func CreateUser(c *gin.Context) {
 	u := User{}
 	token, im_token, err := login(&u, loginInput)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
@@ -100,7 +112,7 @@ func CreateUser(c *gin.Context) {
 	res.IMToken = im_token
 	res.User = u
 
-	c.JSON(http.StatusOK, restfulapi.Success(res))
+	restfulapi.Success(c, res)
 }
 
 func Login(c *gin.Context) {
@@ -111,20 +123,20 @@ func Login(c *gin.Context) {
 	// 綁定輸入參數
 	var input LoginInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "缺少參數"))
+		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 登入
 	token, im_token, err := login(&user, input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
@@ -132,7 +144,7 @@ func Login(c *gin.Context) {
 	res.IMToken = im_token
 	res.User = user
 
-	c.JSON(http.StatusOK, restfulapi.Success(res))
+	restfulapi.Success(c, res)
 }
 
 func SetPassword(c *gin.Context) {
@@ -142,37 +154,37 @@ func SetPassword(c *gin.Context) {
 	// 綁定輸入參數
 	var input UpdatePasswordInput
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, "缺少參數"))
+		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 查詢用戶
 	if err := QueryUserByOpenId(user, input.OpenId); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
 	// 檢查密碼
 	if user.Password != "" {
 		if user.Password != input.OldPassword {
-			c.JSON(http.StatusBadRequest, restfulapi.Error(1, ERROR_MESSAGE_WRONG_PASSWORD_STRING))
+			restfulapi.Error(c, 1, ERROR_MESSAGE_WRONG_PASSWORD_STRING)
 			return
 		}
 	}
 
 	// 更新密碼
 	if err := UpdatePassword(input.OpenId, input.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+		restfulapi.Error(c, 1, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, restfulapi.Success(input))
+	restfulapi.Success(c, input)
 }
 
 // PRIVATE METHOD
