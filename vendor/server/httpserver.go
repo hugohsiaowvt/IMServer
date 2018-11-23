@@ -1,13 +1,15 @@
 package server
 
 import (
-	"service/userservice"
+
+	"rz/config"
 	"service/relationservice"
 	"service/smsservice"
+	"service/userservice"
 	"service/utilservice"
+
 	"github.com/gin-gonic/gin"
-	"rz/config"
-	"rz/restfulapi"
+
 )
 
 func StartHttpServer() error {
@@ -18,11 +20,6 @@ func StartHttpServer() error {
 }
 
 func setV1Group(router gin.IRouter) {
-
-	router.GET("/test", func(c *gin.Context) {
-		restfulapi.Error(c, 100, "aaa")
-	})
-
 
 	v := router.Group("/v1")
 	{

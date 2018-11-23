@@ -18,63 +18,64 @@ func GetVerificationCode(c *gin.Context) {
 	mobile := c.Query("mobile")
 
 	if zone == "" || mobile == "" {
-		restfulapi.Error(c, 1, ERROR_MISSING_PHONE_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PHONE_CODE, struct{}{}, restfulapi.ERROR_MISSING_PHONE_MSG)
 		return
 	}
 
 	phone := zone + mobile
 
+	// 產生驗證碼
 	code := util.GetRandomCode(6)
 	key := VERIFICATION_CODE_REDIS_PREFIX + phone
 	_, err := redis.Instance().SetAndExpire(key, code, 5*60)
 	if (err != nil) {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_REDIS_ERROR_CODE, struct{}{}, err.Error())
 		return
 	}
 
 	// 傳送簡訊(目前先不花錢發簡訊)
 	//err = send(zone, mobile, code);
 	//if err != nil {
-	//	c.JSON(http.StatusBadRequest, restfulapi.Error(1, err.Error()))
+	//	restfulapi.Response(c, restfulapi.ERROR_SEND_SMS_CODE, struct{}{}, restfulapi.ERROR_SEND_SMS_MSG)
 	//	return
 	//}
 	//
-	//c.JSON(http.StatusOK, restfulapi.SuccessMsg(SUCCESS_SMS_SEND_STRING))
-	restfulapi.SuccessMsg(c, code)
+	//restfulapi.Response(c, restfulapi.SUCCESS_CODE, struct{}{}, restfulapi.SUCCESS_SMS_SEND_MSG)
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, struct{}{}, code)
 }
 
 
 
 func PreCheckVerificationCode(c *gin.Context) {
 
-	code := c.Param("code")
+	vcode := c.Param("code")
 
 	// 綁定輸入參數
 	var input PreCheckVerificationInput
 	if err := c.BindJSON(&input); err != nil {
-		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
 		return
 	}
 
 	// 驗證碼確認
-	err := preCheck(input.Zone + input.Mobile, code)
+	code, err := preCheck(input.Zone + input.Mobile, vcode)
 	if (err != nil) {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, code, struct{}{}, err.Error())
 		return
 	}
 
-	restfulapi.SuccessMsg(c, SUCCESS_SMS_VERIFICATION_STRING)
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, struct{}{}, restfulapi.SUCCESS_SMS_VERIFICATION_MSG)
 
 }
 
-func Check(phone, code string) error {
+func Check(phone, code string) (int32, error) {
 	key := VERIFICATION_CODE_REDIS_PREFIX + phone
-	if err := preCheck(phone, code); err != nil {
-		return err
+	if code, err := preCheck(phone, code); err != nil {
+		return code, err
 	}
 
 	redis.Instance().Del(key)
-	return nil
+	return 0, nil
 }
 
 func send(zone, mobile, code string) error {
@@ -93,20 +94,20 @@ func send(zone, mobile, code string) error {
 	return nil
 }
 
-func preCheck(phone, code string) error {
+func preCheck(phone, code string) (int32, error) {
 	key := VERIFICATION_CODE_REDIS_PREFIX + phone
 	v, err := redis.Instance().Get(key)
 	if (err != nil) {
-		return err
+		return restfulapi.ERROR_REDIS_ERROR_CODE, err
 	}
 
 	if (v == "") {
-		return errors.New(ERROR_NONE_VERIFICATION_CODE_STRING)
+		return restfulapi.ERROR_NONE_VERIFICATION_CODE_CODE, errors.New(restfulapi.ERROR_NONE_VERIFICATION_CODE_MSG)
 	} else if (v != code) {
-		return errors.New(ERROR_VERIFICATION_CODE_STRING)
+		return restfulapi.ERROR_VERIFICATION_CODE_CODE, errors.New(restfulapi.ERROR_VERIFICATION_CODE_MSG)
 	}
 
-	return nil
+	return restfulapi.SUCCESS_CODE, nil
 }
 
 func combinePhoneFormat(zone, mobile string) string {

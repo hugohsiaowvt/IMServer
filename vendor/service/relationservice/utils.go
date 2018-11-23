@@ -1,12 +1,14 @@
 package relationservice
 
 const (
-	TABLE_RELATIONSHIPS	string = "relationships"
 
+	TABLE_RELATIONSHIPS		string = "relationships"
+	REQUEST_TOKEN_PREFIX	string = "request_token:"
 	None =		0
 	Pending =	1
 	Acception =	2
 	Rejection =	3
+
 )
 
 type RelationShips struct {

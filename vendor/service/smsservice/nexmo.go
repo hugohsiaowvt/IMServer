@@ -1,9 +1,14 @@
 package smsservice
 
 import (
+
 	"fmt"
 	"errors"
+
+	"rz/restfulapi"
+
 	"github.com/ammario/nexmo"
+
 )
 
 var nexmoUrl string = "https://rest.nexmo.com/sms/json"
@@ -22,7 +27,7 @@ func (self *NexmoVerifyCode) Send(phone, content string) error {
 
 	client := nexmo.New(apiKey, apiSecret)
 	if _, err := client.SMS("VVChat", phone, content); err != nil {
-		return errors.New(ERROR_SEND_STRING)
+		return errors.New(restfulapi.ERROR_SEND_SMS_MSG)
 	}
 	return nil
 

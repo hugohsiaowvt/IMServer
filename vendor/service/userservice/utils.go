@@ -12,14 +12,6 @@ const (
 	OPEN_ID_PREFIX				string = "open_id:"
 	OPEN_ID_KEY					string = "f?KQk#KZqvu.BvAx"
 	
-	ERROR_PHONE_ISEXIST_STRING			string = "該電話已被申請"
-	ERROR_MISSING_PARAMETER_STRING      string = "缺少參數"
-	ERROR_MESSAGE_WRONG_INPUT_STRING    string = "輸入錯誤"
-	ERROR_MESSAGE_WRONG_PASSWORD_STRING string = "密碼錯誤"
-
-	SUCCESS_SMS_SEND_STRING				string = "發送成功"
-	SUCCESS_SMS_VERIFICATION_STRING		string = "驗證成功"
-	
 )
 
 type User struct {

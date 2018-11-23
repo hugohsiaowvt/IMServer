@@ -26,7 +26,7 @@ func Test(c *gin.Context) {
 	v, err := redis.Instance().LRange("mylist", 0, -1)
 	fmt.Println(v, err)
 
-	restfulapi.Success(c, v)
+	restfulapi.Response(c, 0, v, "")
 
 }
 
@@ -35,25 +35,24 @@ func CreateUser(c *gin.Context) {
 	res := LoginResponse{}
 	var loginInput LoginInput
 
-	code := c.Param("code")
+	vcode := c.Param("code")
 
 	// 綁定輸入參數
 	var input RegisterInput
 	if err := c.BindJSON(&input); err != nil {
-		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, err.Error())
 		return
 	}
 
 	// 驗證碼確認
-	err := smsservice.Check(input.Zone + input.Mobile, code)
-	if (err != nil) {
-		restfulapi.Error(c, 1, err.Error())
+	if code, err := smsservice.Check(input.Zone + input.Mobile, vcode); err != nil {
+		restfulapi.Response(c, code, struct{}{}, err.Error())
 		return
 	}
 
@@ -64,11 +63,11 @@ func CreateUser(c *gin.Context) {
 	var count int = -1
 	if err := QueryUser(&User{}, user, &count); err != nil {
 		if count != 0 {
-			restfulapi.Error(c, 1, err.Error())
+			restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
 			return
 		}
 	} else if count == 1 {
-		restfulapi.Error(c, 1, ERROR_PHONE_ISEXIST_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_PHONE_ISEXIST_CODE, struct{}{}, restfulapi.ERROR_PHONE_ISEXIST_MSG)
 		return
 	}
 
@@ -87,14 +86,14 @@ func CreateUser(c *gin.Context) {
 	// 新增用戶
 	if err := InsertUsers(tx, user); err != nil {
 		tx.Rollback()
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct {}{}, err.Error())
 		return
 	}
 
 	// 提交
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		restfulapi.Error(c, 1, "提交處理出錯！")
+		restfulapi.Response(c, restfulapi.ERROR_MYSQL_TRANSACTION_ERROR_CODE, struct {}{}, restfulapi.ERROR_MYSQL_TRANSACTION_ERROR_MSG)
 		return
 	}
 
@@ -102,17 +101,16 @@ func CreateUser(c *gin.Context) {
 	loginInput.Zone = input.Zone
 	loginInput.Mobile = input.Mobile
 	u := User{}
-	token, im_token, err := login(&u, loginInput)
-	if err != nil {
-		restfulapi.Error(c, 1, err.Error())
+	if token, im_token, code, err := login(&u, loginInput); err != nil {
+		restfulapi.Response(c, code, struct{}{}, err.Error())
 		return
+	} else {
+		res.Token = token
+		res.IMToken = im_token
+		res.User = u
 	}
 
-	res.Token = token
-	res.IMToken = im_token
-	res.User = u
-
-	restfulapi.Success(c, res)
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, res, "")
 }
 
 func Login(c *gin.Context) {
@@ -123,28 +121,27 @@ func Login(c *gin.Context) {
 	// 綁定輸入參數
 	var input LoginInput
 	if err := c.BindJSON(&input); err != nil {
-		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, err.Error())
 		return
 	}
 
 	// 登入
-	token, im_token, err := login(&user, input)
-	if err != nil {
-		restfulapi.Error(c, 1, err.Error())
+	if token, im_token, code, err := login(&user, input); err != nil {
+		restfulapi.Response(c, code, struct{}{}, err.Error())
 		return
+	} else {
+		res.Token = token
+		res.IMToken = im_token
+		res.User = user
 	}
 
-	res.Token = token
-	res.IMToken = im_token
-	res.User = user
-
-	restfulapi.Success(c, res)
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, res, "")
 }
 
 func SetPassword(c *gin.Context) {
@@ -154,37 +151,37 @@ func SetPassword(c *gin.Context) {
 	// 綁定輸入參數
 	var input UpdatePasswordInput
 	if err := c.BindJSON(&input); err != nil {
-		restfulapi.Error(c, 1, ERROR_MISSING_PARAMETER_STRING)
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
 		return
 	}
 
 	// 輸入參數確認
 	if err := input.CheckInput(); err != nil {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, err.Error())
 		return
 	}
 
 	// 查詢用戶
 	if err := QueryUserByOpenId(user, input.OpenId); err != nil {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
 		return
 	}
 
 	// 檢查密碼
 	if user.Password != "" {
 		if user.Password != input.OldPassword {
-			restfulapi.Error(c, 1, ERROR_MESSAGE_WRONG_PASSWORD_STRING)
+			restfulapi.Response(c, restfulapi.ERROR_WRONG_PASSWORD_CODE, struct{}{}, restfulapi.ERROR_WRONG_PASSWORD_MSG)
 			return
 		}
 	}
 
 	// 更新密碼
 	if err := UpdatePassword(input.OpenId, input.NewPassword); err != nil {
-		restfulapi.Error(c, 1, err.Error())
+		restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
 		return
 	}
 
-	restfulapi.Success(c, input)
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, input, "")
 }
 
 // PRIVATE METHOD
@@ -219,7 +216,7 @@ func QueryUserExistByOpenId(openId string) (User, bool) {
 }
 
 // 登入
-func login(user *User, input LoginInput) (string, string, error) {
+func login(user *User, input LoginInput) (string, string, int32, error) {
 
 	// 查詢用戶
 	var count int
@@ -229,9 +226,9 @@ func login(user *User, input LoginInput) (string, string, error) {
 	query.Password = input.Password
 	if err := QueryUser(user, query, &count); err != nil {
 		if (count != 0) {
-			return "", "", err
+			return "", "", restfulapi.SUCCESS_CODE, err
 		} else {
-			return "", "", errors.New(ERROR_MESSAGE_WRONG_INPUT_STRING)
+			return "", "", restfulapi.ERROR_WRONG_INPUT_CODE, errors.New(restfulapi.ERROR_WRONG_INPUT_MSG)
 		}
 	}
 
@@ -239,27 +236,27 @@ func login(user *User, input LoginInput) (string, string, error) {
 	key := LOGIN_TOKEN_REDIS_PREFIX + user.OpenId
 	token := uuid.New()
 	if _, err := redis.Instance().Set(key, token); err != nil {
-		return "", "", err
+		return "", "", restfulapi.ERROR_REDIS_ERROR_CODE, err
 	}
 
 	// 取得im token
 	userId := user.OpenId
-	if imToken, tokenError := getIMToken(userId); tokenError != nil {
-		return "", "", tokenError
+	if imToken, code, tokenError := getIMToken(userId); tokenError != nil {
+		return "", "", code, tokenError
 	} else {
-		return token, imToken, nil
+		return token, imToken, restfulapi.SUCCESS_CODE, nil
 	}
 
 }
 
 // 取得IM Token
-func getIMToken(openId string) (string, error) {
+func getIMToken(openId string) (string, int32, error) {
 	token := uuid.New()
 	key := IM_TOKEN_REDIS_PREFIX + openId
 	if _, err := redis.Instance().Set(key, token); err != nil {
-		return "", err
+		return "", restfulapi.ERROR_REDIS_ERROR_CODE, err
 	}
-	return token, nil
+	return token, restfulapi.SUCCESS_CODE, nil
 }
 
 // 確認IM Token

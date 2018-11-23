@@ -199,5 +199,5 @@ func Countrys() []*Country  {
 }
 
 func GetCountrys(c *gin.Context) {
-	restfulapi.Success(c, Countrys())
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, Countrys(), "")
 }
