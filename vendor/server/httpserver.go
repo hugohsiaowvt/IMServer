@@ -49,6 +49,7 @@ func setV1Group(router gin.IRouter) {
 			relations.GET("/sync/:time/user/:userId", relationservice.SyncFriendList)
 			relations.POST("/invite/user/:fromId", relationservice.InviteFriend)
 			relations.POST("/accept/user/:fromId", relationservice.AcceptFriend)
+			relations.POST("/ignore/user/:fromId", relationservice.IgnoreFriend)
 		}
 
 		utils := v.Group("/utils")

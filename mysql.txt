@@ -11,11 +11,9 @@ CREATE TABLE `hugogram`.`users` (
   `area` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '使用者地區',
   `create_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `status` SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '0:正常\n99:封號',
+  `status` SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '0:正常\n-1:封號',
   PRIMARY KEY (`id`),
   UNIQUE `open_id` (`open_id` ASC));
-
-
 
 
 CREATE TABLE `hugogram`.`relationships` (
@@ -23,9 +21,9 @@ CREATE TABLE `hugogram`.`relationships` (
   `user_two_id` VARCHAR(40) NOT NULL DEFAULT '',
   `action_user_id` VARCHAR(40) NOT NULL DEFAULT '',
   `time` BIGINT(20) NOT NULL DEFAULT 0,
-  `status` SMALLINT(6) NOT NULL DEFAULT 1 COMMENT '0:無狀態\n1:等待中\n2:接受\n3:拒絕',
+  `status` SMALLINT(6) NOT NULL DEFAULT 1 COMMENT '-1:無狀態\n1:等待中\n2:接受',
   `request_token` VARCHAR(40) NOT NULL DEFAULT '',
   UNIQUE KEY `pair` (`user_one_id`,`user_two_id`),
-  FOREIGN KEY (user_one_id) REFERENCES users(open_id),
-  FOREIGN KEY (user_two_id) REFERENCES users(open_id),
-  FOREIGN KEY (action_user_id) REFERENCES users(open_id));
+  CONSTRAINT oneId FOREIGN KEY (user_one_id) REFERENCES users(open_id),
+  CONSTRAINT twoId FOREIGN KEY (user_two_id) REFERENCES users(open_id),
+  CONSTRAINT actionId FOREIGN KEY (action_user_id) REFERENCES users(open_id));

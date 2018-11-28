@@ -15,7 +15,7 @@ func QueryFriendRecordByRequestToken(relationship *RelationShips, count *int, to
 }
 
 func QueryFriendSyncList(relationship *[]RelationShips, count *int, userId, time string) error {
-	return mysql.Instance().Debug().Table(TABLE_RELATIONSHIPS).
+	return mysql.Instance().Table(TABLE_RELATIONSHIPS).
 		Where("(user_one_id = ? OR user_two_id = ?) AND time > ?", userId, userId, time).
 		Find(relationship).Count(count).Error
 }

@@ -4,10 +4,10 @@ const (
 
 	TABLE_RELATIONSHIPS		string = "relationships"
 	REQUEST_TOKEN_PREFIX	string = "request_token:"
-	None =		0
+
+	None =		-1
 	Pending =	1
 	Acception =	2
-	Rejection =	3
 
 )
 
@@ -24,6 +24,6 @@ type InviteFriendInput struct {
 	ToId	string 	`json:"to_id"`
 }
 
-type AcceptFriendInput struct {
+type QueryFriendRecordInput struct {
 	RequestToken	string 	`json:"request_token"`
 }

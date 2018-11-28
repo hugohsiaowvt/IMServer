@@ -91,6 +91,27 @@ func InviteFriend(c *gin.Context) {
 		}
 	}
 
+	// 已有發送邀請
+	if count == 1 {
+		// 之前被忽略過
+		if relationship.Status == None {
+			relationship.ActionUserId = fromId
+			relationship.Status = Pending
+			if err := UpdateRelation(relationship); err != nil {
+				restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
+				return
+			}
+			restfulapi.Response(c, restfulapi.SUCCESS_CODE, relationship, "")
+		} else if fromId == relationship.ActionUserId {
+			restfulapi.Response(c, restfulapi.ERROR_SENDED_FRIEND_REQUEST_CODE, struct{}{}, restfulapi.ERROR_SENDED_FRIEND_REQUEST_MSG)
+		} else if input.ToId == relationship.ActionUserId {
+			restfulapi.Response(c, restfulapi.ERROR_UNHANDLED_FRIEND_REQUEST_CODE, struct{}{}, restfulapi.ERROR_UNHANDLED_FRIEND_REQUEST_MSG)
+		} else {
+			restfulapi.Response(c, restfulapi.ERROR_UNKNOW_CODE, struct{}{}, restfulapi.ERROR_UNKNOW_MSG)
+		}
+		return
+	}
+
 	// 添加好友邀請
 	relationship.UserOneId = smallId
 	relationship.UserTwoId = bigId
@@ -113,7 +134,7 @@ func AcceptFriend(c *gin.Context) {
 	fromId := c.Param("fromId")
 
 	// 綁定輸入參數
-	var input AcceptFriendInput
+	var input QueryFriendRecordInput
 	if err := c.BindJSON(&input); err != nil {
 		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
 		return
@@ -127,13 +148,25 @@ func AcceptFriend(c *gin.Context) {
 		}
 	}
 
+	// 沒有邀請資訊
+	if count == 0 {
+		restfulapi.Response(c, restfulapi.ERROR_UNKNOW_CODE, struct{}{}, restfulapi.ERROR_UNKNOW_MSG)
+		return
+	}
+
 	// 成為好友
 	switch relationship.Status {
+	case None:
+		restfulapi.Response(c, restfulapi.ERROR_NONE_FRIEND_REQUEST_CODE, struct{}{}, restfulapi.ERROR_NONE_FRIEND_REQUEST_MSG)
+		break
 	case Pending:
+
+		// 發送與接受邀請是同個人
 		if (relationship.ActionUserId == fromId) {
 			restfulapi.Response(c, restfulapi.ERROR_SENDED_FRIEND_REQUEST_CODE, struct{}{}, restfulapi.ERROR_SENDED_FRIEND_REQUEST_MSG)
 			return
 		}
+
 		relationship.Time = time.Now().UnixNano()
 		relationship.Status = Acception
 		relationship.ActionUserId = fromId
@@ -151,4 +184,49 @@ func AcceptFriend(c *gin.Context) {
 		break
 	}
 
+}
+
+func IgnoreFriend(c *gin.Context) {
+
+	var relationship = &RelationShips{}
+	var count int = -1
+
+	fromId := c.Param("fromId")
+
+	// 綁定輸入參數
+	var input QueryFriendRecordInput
+	if err := c.BindJSON(&input); err != nil {
+		restfulapi.Response(c, restfulapi.ERROR_MISSING_PARAMETER_CODE, struct{}{}, restfulapi.ERROR_MISSING_PARAMETER_MSG)
+		return
+	}
+
+	// 查詢好友邀請清單
+	if err := QueryFriendRecordByRequestToken(relationship, &count, input.RequestToken); err != nil {
+		if (count != 0) {
+			restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
+			return
+		}
+	}
+
+	// 沒有邀請資訊
+	if count == 0 {
+		restfulapi.Response(c, restfulapi.ERROR_UNKNOW_CODE, struct{}{}, restfulapi.ERROR_UNKNOW_MSG)
+		return
+	} else {
+		// 發送與接受邀請是同個人
+		if fromId == relationship.ActionUserId {
+			restfulapi.Response(c, restfulapi.ERROR_SENDED_FRIEND_REQUEST_CODE, struct{}{}, restfulapi.ERROR_SENDED_FRIEND_REQUEST_MSG)
+			return
+		}
+	}
+
+	// 修改status到none
+	relationship.Time = time.Now().UnixNano()
+	relationship.Status = None
+	relationship.ActionUserId = fromId
+	if err := UpdateRelation(relationship); err != nil {
+		restfulapi.Response(c, restfulapi.ERROR_MYSQL_ERROR_CODE, struct{}{}, err.Error())
+		return
+	}
+	restfulapi.Response(c, restfulapi.SUCCESS_CODE, relationship, "")
 }
