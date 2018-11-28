@@ -187,17 +187,17 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 			conversationId = smallId + "_" + bigId
 		}
 
-		list, err := redis.Instance().LRange(CONVERSATION_PREFIX + conversationId, 0, -1)
+		list, err := redis.Instance().SMembers(CONVERSATION_PREFIX + conversationId)
 		if err != nil {
 			client.PutOut(common.NewIMResponseSimple(1, err.Error(), pb.SEND_MSG_RETURN))
 		}
 		if len(list) == 0 {
 			if (req.RoomType == SINGLE_CHAT) {
 				log.Println("建立conversation")
-				if _, err1 := redis.Instance().LPush(CONVERSATION_PREFIX + conversationId, smallId); err1 != nil {
+				if _, err1 := redis.Instance().SAdd(CONVERSATION_PREFIX + conversationId, smallId); err1 != nil {
 					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
 				}
-				if _, err1 := redis.Instance().LPush(CONVERSATION_PREFIX + conversationId, bigId); err1 != nil {
+				if _, err1 := redis.Instance().SAdd(CONVERSATION_PREFIX + conversationId, bigId); err1 != nil {
 					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
 				}
 				this.sendMsgByKeys([]string {smallId, bigId}, req)
