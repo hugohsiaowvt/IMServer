@@ -65,6 +65,11 @@ func (this *Server) listen() {
 			// 退出了一個連線
 			case client := <-this.quitsniffer:
 				this.quitHandler(client)
+				// 移除redis登入的key
+				if client.User != nil {
+					key := SOCKET_KEY_PREFIX + client.User.OpenId
+					redis.Instance().SRem(key, client.Key)
+				}
 			}
 		}
 	}()
@@ -142,7 +147,7 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 			if exist {
 				// 將key寫進redis
 				key := SOCKET_KEY_PREFIX + openId
-				if _, err := redis.Instance().HSet(key, "key", client.Key); err != nil {
+				if _, err := redis.Instance().SAdd(key, client.Key); err != nil {
 					client.PutOut(common.NewIMResponseSimple(1, err.Error(), pb.GET_CONN_RETURN))
 					return
 				}
@@ -228,15 +233,31 @@ func (this *Server) sendMsgByKeys(list []string, req *pb.ReqMsg) {
 	data, _ := proto.Marshal(res)
 	for _, openId := range list {
 		key := SOCKET_KEY_PREFIX + openId
-		v, err := redis.Instance().HGet(key, "key")
+		list, err := redis.Instance().SMembers(key)
 		if err != nil {
-
-		}
-		if this.clients[v] == nil {
-			//推送、離線訊息處理
+			log.Fatalln(ERROR_REDIS_ERROR_MSG)
 			continue
 		}
-		this.clients[v].PutOut(common.NewIMResponseData(data, pb.SEND_MSG_RETURN))
+
+		offline := true
+		for _, v := range list {
+			if this.clients[v] != nil {
+				offline = false
+				log.Println("傳送：" + openId)
+				this.clients[v].PutOut(common.NewIMResponseData(data, pb.SEND_MSG_RETURN))
+			} else {
+				// 傳送的key已經離線就移除
+				key := SOCKET_KEY_PREFIX + openId
+				redis.Instance().SRem(key, v)
+			}
+		}
+		if offline {
+			log.Println("離線：" + openId)
+			//推送、離線訊息處理
+			if _, err := redis.Instance().SAdd(UNREAD_PREFIX + openId, common.NewIMResponseData(data, pb.SEND_MSG_RETURN)); err != nil {
+				log.Fatalln(ERROR_REDIS_ERROR_MSG)
+			}
+		}
 	}
 }
 
@@ -271,7 +292,7 @@ func (this *Server) interruptHandler() {
 	go func() {
 		sig := <-c
 		log.Printf("captured %v, stopping profiler and exiting..", sig)
-		// 清除客户端连接
+		// 清除Client端連接
 		for _, v := range this.clients {
 			this.quitHandler(v)
 		}
