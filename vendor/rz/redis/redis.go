@@ -71,8 +71,12 @@ func (rc *RedisConn) LRange(key string, min, max interface{}) ([]string, error) 
 	return rd.Strings(rc.client.Do("LRange" ,key, min, max))
 }
 
-func (rc *RedisConn) SAdd(key string, value string) (interface{}, error) {
+func (rc *RedisConn) SAdd(key string, value interface{}) (interface{}, error) {
 	return rc.client.Do("SADD" ,key, value)
+}
+
+func (rc *RedisConn) SRem(key string, value interface{}) (interface{}, error) {
+	return rc.client.Do("SREM" ,key, value)
 }
 
 func (rc *RedisConn) SMembers(key string) ([]string, error) {

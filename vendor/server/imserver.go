@@ -153,18 +153,18 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 				client.PutOut(common.NewIMResponseData(data, pb.GET_CONN_RETURN))
 				return
 			} else {
-				client.PutOut(common.NewIMResponseSimple(1, "無此用戶", pb.GET_CONN_RETURN))
+				client.PutOut(common.NewIMResponseSimple(ERROR_NONE_USER_CODE, ERROR_NONE_USER_MSG, pb.GET_CONN_RETURN))
 				return
 			}
 		} else {
-			client.PutOut(common.NewIMResponseSimple(1, "im token錯誤", pb.GET_CONN_RETURN))
+			client.PutOut(common.NewIMResponseSimple(ERROR_IM_TOKEN_CODE, ERROR_IM_TOKEN_MSG, pb.GET_CONN_RETURN))
 			return
 		}
 	}
 
 	// 驗證連線是否已授權
 	if client.User == nil {
-		client.PutOut(common.NewIMResponseSimple(401, "用户未登录!", pb.UNAUTHORIZED))
+		client.PutOut(common.NewIMResponseSimple(ERROR_UNAUTHORIZED_CODE, ERROR_UNAUTHORIZED_MSG, pb.UNAUTHORIZED))
 		return
 	}
 
@@ -189,21 +189,21 @@ func (this *Server) receivedHandler(request common.IMRequest) {
 
 		list, err := redis.Instance().SMembers(CONVERSATION_PREFIX + conversationId)
 		if err != nil {
-			client.PutOut(common.NewIMResponseSimple(1, err.Error(), pb.SEND_MSG_RETURN))
+			client.PutOut(common.NewIMResponseSimple(ERROR_REDIS_ERROR_CODE, err.Error(), pb.SEND_MSG_RETURN))
 		}
 		if len(list) == 0 {
 			if (req.RoomType == SINGLE_CHAT) {
 				log.Println("建立conversation")
 				if _, err1 := redis.Instance().SAdd(CONVERSATION_PREFIX + conversationId, smallId); err1 != nil {
-					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
+					client.PutOut(common.NewIMResponseSimple(ERROR_REDIS_ERROR_CODE, err1.Error(), pb.SEND_MSG_RETURN))
 				}
 				if _, err1 := redis.Instance().SAdd(CONVERSATION_PREFIX + conversationId, bigId); err1 != nil {
-					client.PutOut(common.NewIMResponseSimple(1, err1.Error(), pb.SEND_MSG_RETURN))
+					client.PutOut(common.NewIMResponseSimple(ERROR_REDIS_ERROR_CODE, err1.Error(), pb.SEND_MSG_RETURN))
 				}
 				this.sendMsgByKeys([]string {smallId, bigId}, req)
 				return
 			} else {
-				client.PutOut(common.NewIMResponseSimple(1, "無此群組", pb.SEND_MSG_RETURN))
+				client.PutOut(common.NewIMResponseSimple(ERROR_NONE_GROUP_CODE, ERROR_NONE_GROUP_MSG, pb.SEND_MSG_RETURN))
 			}
 		} else {
 			this.sendMsgByKeys(list, req)

@@ -40,3 +40,7 @@ message ResMsg {
     string  data                = 5;
     int64   time                = 6;
 }
+
+message ResUnreadMsg {
+    repeated    ResMsg  resMsgs = 1;
+}
