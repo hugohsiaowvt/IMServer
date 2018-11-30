@@ -3,6 +3,7 @@ package server
 import (
 
 	"rz/config"
+	"service/groupservice"
 	"service/relationservice"
 	"service/smsservice"
 	"service/userservice"
@@ -50,6 +51,11 @@ func setV1Group(router gin.IRouter) {
 			relations.POST("/invite/user/:fromId", relationservice.InviteFriend)
 			relations.POST("/accept/user/:fromId", relationservice.AcceptFriend)
 			relations.POST("/ignore/user/:fromId", relationservice.IgnoreFriend)
+		}
+
+		groups := v.Group("/groups")
+		{
+			groups.POST("/creator/:creator", groupservice.CreateGroup)
 		}
 
 		utils := v.Group("/utils")

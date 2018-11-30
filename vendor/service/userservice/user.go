@@ -73,6 +73,7 @@ func CreateUser(c *gin.Context) {
 
 	// 新增一個Open id
 	user.OpenId = util.MD5(OPEN_ID_PREFIX + input.Zone + input.Mobile + OPEN_ID_KEY)
+	user.Status = USER_STATUS_OK
 
 	// 開啟Transactions
 	tx := mysql.Instance().Begin()
@@ -232,7 +233,7 @@ func login(user *User, input LoginInput) (string, string, int32, error) {
 		}
 	}
 
-	if user.Status != 0 {
+	if user.Status != USER_STATUS_OK {
 		return "", "", restfulapi.ERROR_USER_LOCK_CODE, errors.New(restfulapi.ERROR_USER_LOCK_MSG)
 	}
 

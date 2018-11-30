@@ -6,25 +6,29 @@ import (
 
 const (
 
-	TABLE_USERS					string = "users"
-	LOGIN_TOKEN_REDIS_PREFIX	string = "login_token:"
-	IM_TOKEN_REDIS_PREFIX		string = "im_token:"
-	OPEN_ID_PREFIX				string = "open_id:"
-	OPEN_ID_KEY					string = "f?KQk#KZqvu.BvAx"
+	TABLE_USERS					string	= "users"
+	LOGIN_TOKEN_REDIS_PREFIX	string	= "login_token:"
+	IM_TOKEN_REDIS_PREFIX		string	= "im_token:"
+	OPEN_ID_PREFIX				string	= "open_id:"
+	OPEN_ID_KEY					string	= "f?KQk#KZqvu.BvAx"
+
+	USER_STATUS_OK				int		= 1
+	USER_STATUS_LOCKED			int		= -1
 	
 )
 
 type User struct {
-	OpenId     	string	`json:"open_id"`
-	Username   	string	`json:"username"`
-	UserId   	string	`json:"user_id"`
-	Zone       	string	`json:"zone"`
-	Mobile     	string	`json:"mobile"`
-	Sex        	int		`json:"sex"`
-	Password   	string	`json:"password"`
-	Email		string	`json:"email"`
-	Area		string	`json:"area"`
-	Status     	int		`json:"status"`
+	OpenId     	string	`json:"open_id" gorm:"Column:open_id"`
+	Username   	string	`json:"user_name" gorm:"Column:user_name"`
+	Nickname   	string	`json:"nick_name" gorm:"Column:nick_name"`
+	UserId   	string	`json:"user_id" gorm:"Column:user_id"`
+	Zone       	string	`json:"zone" gorm:"Column:zone"`
+	Mobile     	string	`json:"mobile" gorm:"Column:mobile"`
+	Sex        	int		`json:"sex" gorm:"Column:sex"`
+	Password   	string	`json:"password" gorm:"Column:password"`
+	Email		string	`json:"email" gorm:"Column:email"`
+	Area		string	`json:"area" gorm:"Column:area"`
+	Status     	int		`json:"status" gorm:"Column:status"`
 }
 
 type GetTokenInput struct {
@@ -36,7 +40,7 @@ type GetTokenRes struct {
 }
 
 type RegisterInput struct {
-	Username   	string	`json:"username"`
+	Username   	string	`json:"user_name"`
 	Zone       	string	`json:"zone"`
 	Mobile     	string	`json:"mobile"`
 	Password	string	`json:"password"`
@@ -66,7 +70,7 @@ type UpdatePasswordInput struct {
 }
 
 type UpdateUserInfoInput struct {
-	Username   	string	`json:"username"`
+	Username   	string	`json:"user_name"`
 	Sex        	int		`json:"sex"`
 	Email      	string	`json:"email"`
 }
