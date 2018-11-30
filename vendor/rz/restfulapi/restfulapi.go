@@ -35,6 +35,8 @@ const (
 	ERROR_MISSING_PHONE_CODE			int32  = 41004
 	ERROR_PHONE_ISEXIST_MSG				string = "該電話已被申請"
 	ERROR_PHONE_ISEXIST_CODE			int32  = 41005
+	ERROR_USER_LOCK_MSG					string = "用戶已鎖定"
+	ERROR_USER_LOCK_CODE				int32  = 41006
 
 	ERROR_WRONG_INPUT_MSG     			string = "輸入錯誤"
 	ERROR_WRONG_INPUT_CODE    			int32  = 42001

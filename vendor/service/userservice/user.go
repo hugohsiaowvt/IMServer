@@ -226,10 +226,14 @@ func login(user *User, input LoginInput) (string, string, int32, error) {
 	query.Password = input.Password
 	if err := QueryUser(user, query, &count); err != nil {
 		if (count != 0) {
-			return "", "", restfulapi.SUCCESS_CODE, err
+			return "", "", restfulapi.ERROR_MYSQL_ERROR_CODE, err
 		} else {
 			return "", "", restfulapi.ERROR_WRONG_INPUT_CODE, errors.New(restfulapi.ERROR_WRONG_INPUT_MSG)
 		}
+	}
+
+	if user.Status != 0 {
+		return "", "", restfulapi.ERROR_USER_LOCK_CODE, errors.New(restfulapi.ERROR_USER_LOCK_MSG)
 	}
 
 	// 製作登入token
